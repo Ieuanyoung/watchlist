@@ -3,11 +3,15 @@
 
 <head>
 	<meta charset="utf-8">
+	<link rel="icon" href="{{ url_for('static', filename='images/f.png')}}">
 	<title>{{ name }}'s Watchlist</title>
 </head>
 
 <body>
-	<h2>{{ name }}'s Watchlist</h2>
+	<h2>
+		<img alt="v1" src="{{ url_for('static', filename='images/video1.png')}}">
+		{{ name }}'s Watchlist
+	</h2>
 	{# 使用length过滤器获取movies变量的长度 #}
 	<p>{{ movies|length }} Titles</p>
 	<ul>
@@ -15,6 +19,7 @@
 		<li>{{ movie.title }} - {{ movie.year }}</li>
 		{% endfor %}
 	</ul>
+	<img alt='v2' src="{{ url_for('static', filename='images/video2.png')}}">
 	<footer>
 		<small>&copy; 2019 <a href="http://helloflask.com/tutorial">HelloFlask</a></small>
 	</footer>

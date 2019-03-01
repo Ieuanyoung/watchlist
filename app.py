@@ -1,10 +1,12 @@
 from flask import Flask, render_template
-from flask import url_for
+# from flask import url_for
 app = Flask(__name__)
+
 
 @app.route('/')
 def index():
 	return render_template('index.html', name=name, movies=movies)
+
 
 @app.route('/user/<name>')
 def user_page(name):
@@ -17,6 +19,7 @@ def user_page(name):
 # 	print(url_for('test_url_for'))
 # 	print(url_for('test_url_for', num = 2))
 # 	return 'Test page'
+
 
 name = 'Ieuanyoung'
 movies = [
