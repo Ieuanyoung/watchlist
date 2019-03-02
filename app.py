@@ -1,7 +1,26 @@
 from flask import Flask, render_template
+from flask_sqlalchemy import SQLAlchemy
+import os
+import click
+
 # from flask import url_for
 app = Flask(__name__)
 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + \
+										os.path.join(app.root_path, 'data.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对模型修改的监控
+# 在扩展类实例化前加载配置
+db = SQLAlchemy(app)
+
+
+@app.cli.command()  # 注册为命令
+@click.option('--drop', is_flag=True, help='Create after drop.')
+def initdb(drop):
+	"""Initialize the database."""
+	if drop:
+		db.drop_all()
+	db.create_all()
+	click.echo('Initialized database.')
 
 @app.route('/')
 def index():
@@ -34,4 +53,15 @@ movies = [
 	{'title': 'WALL-E', 'year': '2008'},
 	{'title': 'The Pork of Music', 'year': '2012'},
 ]
+
+
+class User(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(20))
+
+
+class Movie(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	title = db.Column(db.String(60))
+	year = db.Column(db.String(4))
 
