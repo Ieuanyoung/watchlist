@@ -14,7 +14,7 @@ footer{
     padding: 10px;
 }
 
-/* 头像 */
+/* 标题图片 */
 .title_image{
     width: 40px;
 }
@@ -37,8 +37,8 @@ footer{
     background-color: #f8f9fa;
 }
 
-/* 龙猫图片 */
-.totoro {
+/* pika */
+.pika {
     display: block;
     margin: 0 auto;
     height: 100px;
