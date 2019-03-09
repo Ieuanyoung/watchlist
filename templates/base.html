@@ -11,6 +11,11 @@
     {% endblock %}
 </head>
 <body>
+    {% for message in get_flashed_messages() %}
+        <div class="alert">
+            {{ message }}
+        </div>
+    {% endfor %}
     <h2>
     <img alt="title_iamge" class="title_image" src="{{ url_for('static',
             filename='images/video.png') }}">

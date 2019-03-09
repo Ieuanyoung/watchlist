@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+        form{display: inline}
+    </style>
+</head>
+<body>
+<li>
+    test
+    <span>
+
+        <a>Edit</a>
+        <form method="post" action="{{ url_for('delete', movie_id=movie.id) }}">
+            <input class="btn" type="submit" name="delete" value="Delete"
+                               onclick="return confirm('Are you sure?')">
+        </form>
+        <a>IMDb</a>
+    </span>
+</li>
+
+</body>
+</html>
