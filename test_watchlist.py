@@ -1,6 +1,7 @@
 import unittest
-
-from app import app, db, Movie, User, forge, initdb
+from watchlist import app, db
+from watchlist.models import Movie, User
+from watchlist.commands import forge, initdb
 
 
 class WatchlistTestCase(unittest.TestCase):
@@ -9,13 +10,15 @@ class WatchlistTestCase(unittest.TestCase):
         # 更新配置
         app.config.update(
             TESTING=True,
-            SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:')
+            SQLALCHEMY_DATABASE_URI='sqlite:///:memory:')
         # 创建数据库和表
         db.create_all()
         # 创建测试数据，一个用户，一个测试条目
-        user = User(name='Test', username='test')
+        user = User()
+        user.username = 'test'
+        user.name = 'Test'
         user.set_password('test')
-        movie = Movie(title='Test movie title', year='2019')
+        movie = Movie(title='Test Movie Title', year='2019')
         # 使用add_all()方法一次添加多个模型类实例，传入列表
         db.session.add_all([user, movie])
         db.session.commit()
@@ -27,7 +30,6 @@ class WatchlistTestCase(unittest.TestCase):
         db.session.remove()  # 清除数据库会话
         db.drop_all()  # 删除数据库表
 
-    """====测试固件===="""
     # 测试程序实例是否存在
     def test_app_exist(self):
         self.assertIsNotNone(app)
@@ -36,6 +38,7 @@ class WatchlistTestCase(unittest.TestCase):
     def test_app_is_testing(self):
         self.assertTrue(app.config['TESTING'])
 
+    """====测试固件===="""
     # 测试404页面
     def test_404_page(self):
         response = self.client.get('/nothing')  # 传入目标URL
@@ -49,13 +52,13 @@ class WatchlistTestCase(unittest.TestCase):
         response = self.client.get('/')
         data = response.get_data(as_text=True)
         self.assertIn('Test\'s Watchlist', data)
-        self.assertIn('Test movie title', data)
+        self.assertIn('Test Movie Title', data)
         self.assertEqual(response.status_code, 200)
 
     # 辅助方法，用于登入用户
     def login(self):
         self.client.post('/login', data=dict(
-            username='ieuanyoung', password='test'), follow_redirects=True)
+            username='test', password='test'), follow_redirects=True)
 
     """====创建、更新和删除条目===="""
     # 测试创建条目
@@ -64,15 +67,18 @@ class WatchlistTestCase(unittest.TestCase):
 
         # 测试创建条目操作
         response = self.client.post('/', data=dict(
-            title='New Movie', year='2019'), follow_redirects=True)
+            title='New Movie',
+            year='2019'
+        ), follow_redirects=True)
         data = response.get_data(as_text=True)
-        self.assertIn('Item created', data)
+        self.assertIn('Item created.', data)
         self.assertIn('New Movie', data)
 
         # 测试创建条目操作，但电影标题为空
         response = self.client.post('/', data=dict(
             title='',
-            year='2019'), follow_redirects=True)
+            year='2019'
+        ), follow_redirects=True)
         data = response.get_data(as_text=True)
         self.assertNotIn('Item created.', data)
         self.assertIn('Invalid input.', data)
@@ -103,7 +109,7 @@ class WatchlistTestCase(unittest.TestCase):
             year='2019'
         ), follow_redirects=True)
         data = response.get_data(as_text=True)
-        # self.assertIn('Item updated.', data)
+        self.assertIn('Item updated.', data)
         self.assertIn('New Movie Edited', data)
 
         # 测试更新条目操作，但电影标题为空
@@ -128,10 +134,9 @@ class WatchlistTestCase(unittest.TestCase):
     # 测试删除条目
     def test_delete_item(self):
         self.login()
-        response = self.client.post('/movie/delete/1',
-                                    follow_redirects=True)
+        response = self.client.post('/movie/delete/1', follow_redirects=True)
         data = response.get_data(as_text=True)
-        # self.assertIn('Item deleted.', data)
+        self.assertIn('Item deleted.', data)
         self.assertNotIn('Test Movie Title', data)
 
     """====测试认证相关功能===="""
@@ -149,18 +154,20 @@ class WatchlistTestCase(unittest.TestCase):
     # 测试登录
     def test_login(self):
         response = self.client.post('/login', data=dict(
-            username='ieuanyoung', password='test'), follow_redirects=True)
+            username='test',
+            password='test'
+        ), follow_redirects=True)
         data = response.get_data(as_text=True)
         self.assertIn('Login success.', data)
-        self.assertIn('Logout', data)
-        self.assertIn('Settings', data)
+        self.assertIn('logout', data)
+        self.assertIn('settings', data)
         self.assertIn('Delete', data)
         self.assertIn('Edit', data)
-        self.assertIn('<form method="post">', data)
+        self.assertIn('<form method="POST">', data)
 
         # 测试使用错误的密码登录
         response = self.client.post('/login', data=dict(
-            username='ieuanyoung',
+            username='test',
             password='456'
         ), follow_redirects=True)
         data = response.get_data(as_text=True)
@@ -169,7 +176,8 @@ class WatchlistTestCase(unittest.TestCase):
 
         # 测试使用错误的用户名登录
         response = self.client.post('/login', data=dict(
-            username='wrong', password='test'
+            username='wrong',
+            password='test'
         ), follow_redirects=True)
         data = response.get_data(as_text=True)
         self.assertNotIn('Login success.', data)
@@ -177,7 +185,8 @@ class WatchlistTestCase(unittest.TestCase):
 
         # 测试使用空用户名登录
         response = self.client.post('/login', data=dict(
-            username='', password='test'
+            username='',
+            password='test'
         ), follow_redirects=True)
         data = response.get_data(as_text=True)
         self.assertNotIn('Login success.', data)
@@ -185,7 +194,7 @@ class WatchlistTestCase(unittest.TestCase):
 
         # 测试使用空密码登录
         response = self.client.post('/login', data=dict(
-            username='ieuanyoung', password=''
+            username='test', password=''
         ), follow_redirects=True)
         data = response.get_data(as_text=True)
         self.assertNotIn('Login success.', data)
@@ -194,6 +203,7 @@ class WatchlistTestCase(unittest.TestCase):
     # 测试登出
     def test_logout(self):
         self.login()
+
         response = self.client.get('/logout', follow_redirects=True)
         data = response.get_data(as_text=True)
         self.assertIn('Goodbye.', data)
@@ -215,14 +225,16 @@ class WatchlistTestCase(unittest.TestCase):
 
         # 测试更新设置
         response = self.client.post('/settings', data=dict(
-            name='update_name',), follow_redirects=True)
+            name='update_name',
+        ), follow_redirects=True)
         data = response.get_data(as_text=True)
-        self.assertIn('Settings updated.', data.output)
+        self.assertIn('Settings updated.', data)
         self.assertIn('update_name', data)
 
         # 测试更新设置，名称为空
         response = self.client.post('/settings', data=dict(
-            name='',), follow_redirects=True)
+            name='',
+        ), follow_redirects=True)
         data = response.get_data(as_text=True)
         self.assertNotIn('Settings updated.', data)
         self.assertIn('Invalid input.', data)
@@ -230,7 +242,7 @@ class WatchlistTestCase(unittest.TestCase):
     # 测试虚拟数据
     def test_forge_command(self):
         result = self.runner.invoke(forge)
-        # self.assertIn('Done.', result.output)
+        self.assertIn('Done.', result.output)
         self.assertNotEqual(Movie.query.count(), 0)
 
     # 测试初始化数据库
@@ -242,8 +254,7 @@ class WatchlistTestCase(unittest.TestCase):
     def test_admin_command(self):
         db.drop_all()
         db.create_all()
-        result = self.runner.invoke(
-            args=['admin', '--username', 'young', '--password','test'])
+        result = self.runner.invoke(args=['admin', '--username', 'young', '--password', 'test'])
         self.assertIn('Creating user...', result.output)
         self.assertIn('Done.', result.output)
         self.assertEqual(User.query.count(), 1)
@@ -253,8 +264,7 @@ class WatchlistTestCase(unittest.TestCase):
     # 测试更新管理员账户
     def test_admin_command_update(self):
         # 使用 args 参数给出完整的命令参数列表
-        result = self.runner.invoke(
-            args=['admin', '--username', 'peter', '--password', '456'])
+        result = self.runner.invoke(args=['admin', '--username', 'peter', '--password', '456'])
         self.assertIn('Updating user...', result.output)
         self.assertIn('Done.', result.output)
         self.assertEqual(User.query.count(), 1)
