@@ -20,6 +20,7 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
+
 class User(db.Model, UserMixin):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(20))
@@ -58,22 +59,22 @@ def inject_user():
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-	if request == 'POST':
+	if request.method == 'POST':
 		if not current_user.is_authenticated:
-			return redirect(url_for(index))
-
-		title = request.form['title']
-		year = request.form['year']
-
-		if not title or not year or len(year) > 4 or len(title) > 60:
-			flash('Invalid input.')
 			return redirect(url_for('index'))
-		# 保存表单数据到数据库
-		movie = Movie(title=title, year=year)
-		db.session.add(movie)
-		db.session.commit()
-		flash('Item created.')
-		return redirect(url_for('index'))
+		else:
+			title = request.form.get('title')
+			year = request.form.get('year')
+
+			if not title or not year or len(year) > 4 or len(title) > 60:
+				flash('Invalid input.')
+				return redirect(url_for('index'))
+			# 保存表单数据到数据库
+			movie = Movie(title=title, year=year)
+			db.session.add(movie)
+			db.session.commit()
+			flash('Item created.')
+			return redirect(url_for('index'))
 
 	user = User.query.first()
 	movies = Movie.query.all()  # 读取所有电影记录
@@ -195,7 +196,7 @@ def forge():
 		db.session.add(movie)
 
 	db.session.commit()
-	click.echo('Done')
+	click.echo('Done.')
 
 
 @app.cli.command()
@@ -207,7 +208,7 @@ def admin(username, password):
 
 	user = User.query.first()
 	if user is not None:
-		click.echo('Updateing user...')
+		click.echo('Updating user...')
 		user.username = username
 		user.set_password(passward)
 	else:
